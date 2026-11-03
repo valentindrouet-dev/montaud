@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { FileText, ImagePlus, Paperclip, Trash2, Download } from 'lucide-react';
 import type { Attachment } from '../types';
-import { fileUrl } from '../api';
+import { FileImg, FileLink } from '../files';
 import { isImage } from '../model';
 import { fileSize } from '../format';
 import { useApp } from '../context';
@@ -26,7 +26,7 @@ export function Thumbs({ files, caption, occurrenceId, max = 4 }: { files: Attac
                 openLightbox(images.map((file) => ({ file, caption, occurrenceId })), i);
               }}
             >
-              <img src={fileUrl(f, true)} alt={f.name} loading="lazy" />
+              <FileImg file={f} thumb loading="lazy" />
               {i === shown.length - 1 && images.length > shown.length && (
                 <span className="more">+{images.length - shown.length}</span>
               )}
@@ -37,9 +37,9 @@ export function Thumbs({ files, caption, occurrenceId, max = 4 }: { files: Attac
       {docs.length > 0 && (
         <div className="doc-pills">
           {docs.map((f) => (
-            <a key={f.id} className="doc-pill" href={fileUrl(f)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+            <FileLink key={f.id} file={f} className="doc-pill" onClick={(e) => e.stopPropagation()}>
               <FileText size={14} /> {f.name}
-            </a>
+            </FileLink>
           ))}
         </div>
       )}
@@ -113,22 +113,20 @@ export function AttachmentManager({
                   className="attach-preview"
                   onClick={() => openLightbox(images.map((file) => ({ file, caption })), images.indexOf(f))}
                 >
-                  <img src={fileUrl(f, true)} alt="" loading="lazy" />
+                  <FileImg file={f} thumb alt="" loading="lazy" />
                 </button>
               ) : (
-                <a className="attach-preview doc" href={fileUrl(f)} target="_blank" rel="noreferrer">
+                <FileLink file={f} className="attach-preview doc">
                   <FileText size={22} />
-                </a>
+                </FileLink>
               )}
               <span className="attach-name">
-                <a href={fileUrl(f)} target="_blank" rel="noreferrer">
-                  {f.name}
-                </a>
+                <FileLink file={f}>{f.name}</FileLink>
                 <small>{fileSize(f.size)}</small>
               </span>
-              <a className="icon-btn" href={`${fileUrl(f)}?download`} aria-label="Télécharger" title="Télécharger">
+              <FileLink file={f} download className="icon-btn" aria-label="Télécharger" title="Télécharger">
                 <Download size={16} />
-              </a>
+              </FileLink>
               <button
                 className="icon-btn danger"
                 aria-label="Supprimer"

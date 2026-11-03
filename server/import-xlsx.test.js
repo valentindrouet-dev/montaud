@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import ExcelJS from 'exceljs';
-import { importXlsx } from './import-xlsx.js';
+import { importXlsx } from '../shared/import-xlsx.js';
 
 async function sampleWorkbook() {
   const wb = new ExcelJS.Workbook();

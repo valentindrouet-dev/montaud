@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import JSZip from 'jszip';
-import { emptyDb, filePath, getDb, replaceDb, HttpError } from './store.js';
+import { filePath, getDb, replaceDb } from './store.js';
+import { checkShape, HttpError } from '../shared/rules.js';
 
 /** Sauvegarde complète : données + fichiers joints. */
 export async function exportZip() {
@@ -16,14 +17,6 @@ export async function exportZip() {
     }
   }
   return zip.generateAsync({ type: 'nodebuffer', compression: 'STORE' });
-}
-
-function checkShape(body) {
-  const keys = Object.keys(emptyDb());
-  if (!body || typeof body !== 'object' || !keys.every((k) => Array.isArray(body[k] ?? []))) {
-    throw new HttpError(400, 'Sauvegarde invalide');
-  }
-  return Object.fromEntries(keys.map((k) => [k, body[k] ?? []]));
 }
 
 /** Restaure une sauvegarde .zip (ou un ancien .json sans fichiers). */

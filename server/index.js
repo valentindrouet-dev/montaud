@@ -5,7 +5,7 @@ import { timingSafeEqual } from 'node:crypto';
 import {
   SCHEMAS, HttpError, getDb, replaceDb, create, update, remove, addAttachment, setThumb, filePath,
 } from './store.js';
-import { importXlsx } from './import-xlsx.js';
+import { importXlsx } from '../shared/import-xlsx.js';
 import { exportZip, importBackup } from './backup.js';
 
 const app = express();

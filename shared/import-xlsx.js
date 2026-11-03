@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs';
-import { randomUUID } from 'node:crypto';
+import { newId } from './rules.js';
 
 const PALETTE = ['#e07a5f', '#3d9970', '#5b8def', '#f2a541', '#9b6bd3', '#e05f8a', '#2bb3b1', '#8a8f3c', '#c9733a', '#6c7a89'];
 
@@ -82,7 +82,7 @@ function readTimeline(ws, db) {
     const name = prettyName(raw);
     const icon = guessIcon(name);
     category = {
-      id: randomUUID(),
+      id: newId(),
       name,
       icon: icon === '⭐' && /^[A-ZÀ-Ý]+$/u.test(raw) ? '👶' : icon, // un prénom seul = un enfant
       color: PALETTE[db.categories.length % PALETTE.length],
@@ -114,7 +114,7 @@ function readTimeline(ws, db) {
     if (!category) ensureCategory('Maison');
 
     const event = {
-      id: randomUUID(),
+      id: newId(),
       categoryId: category.id,
       name,
       order: db.events.filter((e) => e.categoryId === category.id).length,
@@ -122,7 +122,7 @@ function readTimeline(ws, db) {
     db.events.push(event);
 
     for (const { year, v } of values) {
-      const occ = { id: randomUUID(), eventId: event.id, year };
+      const occ = { id: newId(), eventId: event.id, year };
       if (v instanceof Date) {
         const m = v.getUTCMonth() + 1;
         const d = v.getUTCDate();
@@ -153,7 +153,7 @@ function readPurchases(ws, db) {
     if (n === 1) return;
     const item = cellValue(row.getCell(cols.item));
     if (!item) return;
-    const p = { id: randomUUID(), item: String(item) };
+    const p = { id: newId(), item: String(item) };
     const d = cols.date && cellValue(row.getCell(cols.date));
     if (d instanceof Date) p.date = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
     const a = cellValue(row.getCell(cols.amount));
@@ -165,6 +165,7 @@ function readPurchases(ws, db) {
   return true;
 }
 
+/** `buffer` : Buffer (Node) ou ArrayBuffer (navigateur). */
 export async function importXlsx(buffer) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);

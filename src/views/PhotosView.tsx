@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useApp } from '../context';
 import { isImage, matches } from '../model';
-import { fileUrl } from '../api';
+import { FileImg } from '../files';
 import { whenText } from '../format';
 import { CategoryChips, SearchBox } from '../components/Filters';
 
@@ -50,7 +50,7 @@ export function PhotosView() {
               .filter((p) => p.year === y)
               .map((p) => (
                 <button key={p.file.id} className="masonry-item" onClick={() => openLightbox(photos, photos.indexOf(p))}>
-                  <img src={fileUrl(p.file, true)} alt={p.caption} loading="lazy" />
+                  <FileImg file={p.file} thumb alt={p.caption} loading="lazy" />
                   <span className="masonry-caption">{p.caption}</span>
                 </button>
               ))}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Download, ExternalLink, X } from 'lucide-react';
 import type { Attachment } from '../types';
-import { fileUrl } from '../api';
+import { FileImg, FileLink } from '../files';
 
 export interface LightboxItem {
   file: Attachment;
@@ -62,14 +62,14 @@ export function Lightbox({
             <ExternalLink size={18} />
           </button>
         )}
-        <a className="lb-btn" href={`${fileUrl(item.file)}?download`} title="Télécharger">
+        <FileLink file={item.file} download className="lb-btn" title="Télécharger">
           <Download size={18} />
-        </a>
+        </FileLink>
         <button className="lb-btn" onClick={onClose} aria-label="Fermer">
           <X size={20} />
         </button>
       </div>
-      <img key={item.file.id} src={fileUrl(item.file)} alt={item.file.name} onClick={(e) => e.stopPropagation()} />
+      <FileImg key={item.file.id} file={item.file} className="lb-img" onClick={(e) => e.stopPropagation()} />
       {items.length > 1 && (
         <>
           <button className="lb-nav prev" onClick={(e) => (e.stopPropagation(), go(-1))} aria-label="Précédente">

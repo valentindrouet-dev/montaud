@@ -19,6 +19,21 @@ avec leurs photos et documents, en frise chronologique, en calendrier et par rub
 - **Réglages** : sauvegarde complète en .zip (données + fichiers), restauration, import du fichier Excel.
 - Pensée pour mobile (barre d'onglets, feuilles plein écran) et thème sombre automatique.
 
+## Deux façons de l'utiliser
+
+| | GitHub Pages (mode navigateur) | Serveur Node |
+|---|---|---|
+| Hébergement | gratuit, https://valentindrouet-dev.github.io/montaud/ | une machine qui fait tourner `npm start` (NAS, VPS, Docker…) |
+| Données | dans le navigateur (IndexedDB), **propres à chaque appareil** | sur le serveur, **partagées** entre tous les appareils |
+| Transfert | sauvegarde .zip ↔ restauration | — |
+
+Le mode est choisi à la compilation : `VITE_STORAGE=local npm run build` pour le mode navigateur.
+
+### Publier sur GitHub Pages
+
+Le workflow `.github/workflows/pages.yml` compile et publie l'app à chaque push. Réglage à faire une fois :
+**Settings → Pages → Build and deployment → Source : « GitHub Actions »**.
+
 ## Démarrer
 
 ```bash
@@ -77,4 +92,5 @@ une sauvegarde .zip depuis les Réglages.
 - `server/` : Node.js + Express, stockage JSON (écriture atomique) + fichiers sur disque, import Excel
   (ExcelJS), sauvegarde zip (JSZip).
 - `src/` : React + TypeScript (Vite), icônes Lucide, glisser-déposer dnd-kit, polices Inter & Fraunces.
+- `shared/` : règles métier et import Excel, communs au serveur et au mode navigateur.
 - `npm test` : tests de l'import Excel, des pièces jointes et de la sauvegarde.
