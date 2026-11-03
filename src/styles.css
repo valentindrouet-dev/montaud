@@ -1608,7 +1608,7 @@ textarea {
     bottom: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
     background: color-mix(in srgb, var(--surface) 88%, transparent);
     backdrop-filter: blur(14px);
@@ -1785,4 +1785,232 @@ textarea {
 }
 .local-note p {
   margin: 4px 0 0;
+}
+
+/* ===== Tableau (rubriques × années) ===== */
+.tgrid-scroll {
+  overflow: auto;
+  max-height: calc(100dvh - 210px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.tgrid {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.86rem;
+  min-width: 100%;
+}
+.tgrid th,
+.tgrid td {
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+.tgrid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface-2);
+  padding: 10px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.tgrid thead .tyear {
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+  min-width: 112px;
+}
+.tgrid thead .tyear.current {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+}
+.tgrid .tname {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 230px;
+  min-width: 230px;
+  max-width: 230px;
+  background: var(--surface);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+.tgrid .tlast {
+  position: sticky;
+  left: 230px;
+  z-index: 2;
+  min-width: 128px;
+  width: 128px;
+  background: var(--surface);
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+  box-shadow: 1px 0 0 var(--border), 6px 0 12px -10px rgba(0, 0, 0, 0.25);
+}
+.tgrid thead .tname,
+.tgrid thead .tlast {
+  z-index: 4;
+  background: var(--surface-2);
+}
+.trow .tname {
+  box-shadow: inset 3px 0 0 var(--c);
+}
+.trow:hover .tname,
+.trow:hover .tlast,
+.trow:hover .tcell {
+  background: color-mix(in srgb, var(--c) 6%, var(--surface));
+}
+.tcat th,
+.tcat td {
+  background: color-mix(in srgb, var(--c) 16%, var(--surface)) !important;
+  border-bottom-color: color-mix(in srgb, var(--c) 30%, var(--border));
+}
+.tcat .tname {
+  padding: 0;
+  width: auto;
+  max-width: none;
+}
+.tcat-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: left;
+}
+.tcat-btn small {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.tcat-icon {
+  font-size: 1.05rem;
+}
+.tcell {
+  border-left: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.12s;
+}
+.tcell.current {
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.tcell:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface)) !important;
+}
+.tcell:not(.filled):hover .tcell-inner::after {
+  content: '+';
+  color: var(--muted);
+  font-weight: 700;
+}
+.tcell.over {
+  background: var(--accent-soft) !important;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.tcell-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 38px;
+  padding: 4px 6px;
+}
+.cell-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c, var(--accent)) 18%, var(--surface));
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: grab;
+  touch-action: none;
+}
+.cell-chip:hover {
+  background: color-mix(in srgb, var(--c, var(--accent)) 32%, var(--surface));
+}
+.cell-chip.approx {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 45%, var(--border));
+  font-style: italic;
+  font-weight: 500;
+}
+.cell-chip.dragging {
+  opacity: 0.3;
+}
+.cell-chip.overlay {
+  box-shadow: var(--shadow-lg);
+  cursor: grabbing;
+  transform: rotate(-3deg);
+  background: var(--surface);
+}
+.cell-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--muted);
+}
+.cell-marks .note-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--warm);
+}
+@media (max-width: 860px) {
+  .tgrid .tname {
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+  .tgrid .tlast {
+    display: none;
+  }
+  .tgrid thead .tyear {
+    min-width: 92px;
+  }
+  .tgrid-scroll {
+    max-height: calc(100dvh - 260px);
+  }
+  .bottom-nav button {
+    font-size: 0.62rem;
+  }
+}
+.link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

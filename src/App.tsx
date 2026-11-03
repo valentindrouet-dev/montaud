@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Camera, FolderKanban, GitCommitVertical, Plus, Receipt, Settings, X } from 'lucide-react';
+import { CalendarDays, Camera, FolderKanban, GitCommitVertical, Plus, Receipt, Settings, Table2, X } from 'lucide-react';
 import { useDb } from './useDb';
 import { Ctx, type AppCtx, type EditorPreset } from './context';
 import { buildEntries } from './model';
 import type { Category } from './types';
 import { TimelineView } from './views/TimelineView';
 import { CalendarView } from './views/CalendarView';
+import { TableView } from './views/TableView';
 import { TopicsView } from './views/TopicsView';
 import { PhotosView } from './views/PhotosView';
 import { PurchasesView } from './views/PurchasesView';
@@ -15,10 +16,11 @@ import { Lightbox, type LightboxItem } from './components/Lightbox';
 
 const VIEWS = [
   { id: 'fil', label: 'Fil', icon: GitCommitVertical },
-  { id: 'calendrier', label: 'Calendrier', icon: CalendarDays },
-  { id: 'rubriques', label: 'Rubriques', icon: FolderKanban },
+  { id: 'calendrier', label: 'Calendrier', short: 'Agenda', icon: CalendarDays },
+  { id: 'tableau', label: 'Tableau', icon: Table2 },
+  { id: 'rubriques', label: 'Rubriques', short: 'Suivi', icon: FolderKanban },
   { id: 'photos', label: 'Photos', icon: Camera },
-  { id: 'depenses', label: 'Dépenses', icon: Receipt },
+  { id: 'depenses', label: 'Dépenses', short: '€', icon: Receipt },
   { id: 'reglages', label: 'Réglages', icon: Settings },
 ] as const;
 type ViewId = (typeof VIEWS)[number]['id'];
@@ -139,6 +141,8 @@ export default function App() {
             <TimelineView />
           ) : view === 'calendrier' ? (
             <CalendarView />
+          ) : view === 'tableau' ? (
+            <TableView />
           ) : view === 'rubriques' ? (
             <TopicsView />
           ) : view === 'photos' ? (
@@ -157,10 +161,10 @@ export default function App() {
         )}
 
         <nav className="bottom-nav">
-          {VIEWS.filter((v) => v.id !== 'reglages').map(({ id, label, icon: Icon }) => (
-            <button key={id} className={view === id ? 'active' : ''} onClick={() => go(id)}>
-              <Icon size={20} />
-              <span>{label}</span>
+          {VIEWS.filter((v) => v.id !== 'reglages').map((v) => (
+            <button key={v.id} className={view === v.id ? 'active' : ''} onClick={() => go(v.id)} aria-label={v.label}>
+              <v.icon size={20} />
+              <span>{'short' in v ? v.short : v.label}</span>
             </button>
           ))}
           <button className={view === 'reglages' ? 'active' : ''} onClick={() => go('reglages')} aria-label="Réglages">
