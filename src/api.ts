@@ -1,9 +1,16 @@
 import type { Attachment, Collection, Db } from './types';
 import { localBackend } from './local';
+import { remoteBackend } from './remote';
+import { sb, supabaseStore } from './supabase';
 
-/** Stockage des données : serveur Node (/api) ou navigateur (IndexedDB, pour GitHub Pages). */
+/**
+ * Stockage des données :
+ * - `remote` : en ligne et partagé (Supabase) — si VITE_SUPABASE_URL est défini
+ * - `local`  : dans le navigateur (IndexedDB) — VITE_STORAGE=local
+ * - `server` : serveur Node du dépôt (/api)
+ */
 export interface Backend {
-  kind: 'server' | 'local';
+  kind: 'server' | 'local' | 'remote';
   load(): Promise<Db>;
   create<T>(c: Collection, data: Partial<T>): Promise<T>;
   update<T>(c: Collection, id: string, data: Partial<T>): Promise<T>;
@@ -15,6 +22,8 @@ export interface Backend {
   exportBackup(): Promise<Blob>;
   /** URL affichable d'un fichier joint (vignette si dispo quand `thumb`) */
   fileUrl(a: Attachment, thumb?: boolean): Promise<string>;
+  /** Être prévenu des changements faits ailleurs (renvoie la fonction de désabonnement). */
+  subscribe?(cb: (db: Db) => void): () => void;
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -60,4 +69,8 @@ const serverBackend: Backend = {
   fileUrl: async (a, thumb) => `api/files/${a.id}${thumb && a.hasThumb ? '?thumb' : ''}`,
 };
 
-export const api: Backend = import.meta.env.VITE_STORAGE === 'local' ? localBackend : serverBackend;
+export const api: Backend = sb
+  ? remoteBackend(supabaseStore(sb))
+  : import.meta.env.VITE_STORAGE === 'local'
+    ? localBackend
+    : serverBackend;

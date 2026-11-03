@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Camera, FolderKanban, GitCommitVertical, Plus, Receipt, Settings, Table2, X } from 'lucide-react';
+import type { Session } from '@supabase/supabase-js';
 import { useDb } from './useDb';
+import { auth } from './supabase';
+import { Login } from './components/Login';
 import { Ctx, type AppCtx, type EditorPreset } from './context';
 import { buildEntries } from './model';
 import type { Category } from './types';
@@ -31,7 +34,25 @@ function viewFromHash(): ViewId {
 }
 
 export default function App() {
-  const actions = useDb();
+  // Connexion (uniquement en mode partagé Supabase)
+  const [session, setSession] = useState<Session | null | 'loading'>(auth.enabled ? 'loading' : null);
+  const [member, setMember] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!auth.enabled) return;
+    auth.session().then(setSession, () => setSession(null));
+    return auth.onChange(setSession);
+  }, []);
+  const userEmail = session && session !== 'loading' ? session.user.email : undefined;
+  useEffect(() => {
+    if (!userEmail) return;
+    // Nettoie l'adresse après un lien magique (#access_token=…)
+    if (/access_token|error_description/.test(location.hash)) history.replaceState(null, '', `${location.pathname}#fil`);
+    setMember(null);
+    auth.isMember().then(setMember, () => setMember(false));
+  }, [userEmail]);
+  const ready = !auth.enabled || (Boolean(userEmail) && member === true);
+
+  const actions = useDb(ready);
   const { db, error, setError, toast } = actions;
   const [view, setView] = useState<ViewId>(viewFromHash);
   const [editor, setEditor] = useState<{ id?: string; preset?: EditorPreset; key: number } | null>(null);
@@ -56,6 +77,21 @@ export default function App() {
     setEditor({ id, key: Date.now() });
   }, []);
   const newEntry = useCallback((preset?: EditorPreset) => setEditor({ preset, key: Date.now() }), []);
+
+  if (auth.enabled && session === null) return <Login />;
+  if (auth.enabled && userEmail && member === false) {
+    return (
+      <div className="splash">
+        <span className="logo-mark">M</span>
+        <p>
+          L’adresse <strong>{userEmail}</strong> n’est pas autorisée sur Montaud.
+        </p>
+        <button className="btn" onClick={() => auth.signOut()}>
+          Utiliser une autre adresse
+        </button>
+      </div>
+    );
+  }
 
   if (!db) {
     return (
@@ -150,7 +186,7 @@ export default function App() {
           ) : view === 'depenses' ? (
             <PurchasesView />
           ) : (
-            <SettingsView onImported={() => go('fil')} />
+            <SettingsView onImported={() => go('fil')} userEmail={userEmail} />
           )}
         </main>
 

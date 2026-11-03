@@ -2014,3 +2014,51 @@ textarea {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ===== Connexion ===== */
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
+    radial-gradient(900px 500px at 110% 110%, color-mix(in srgb, var(--warm) 18%, transparent), transparent), var(--bg);
+}
+.login-card {
+  width: min(400px, 100%);
+  padding: 32px 28px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.login-card h1 {
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 650;
+  margin-top: 8px;
+}
+.login-card p {
+  margin: 0;
+}
+.login-card .form {
+  width: 100%;
+  margin-top: 18px;
+  text-align: left;
+  gap: 12px;
+}
+.login-sent {
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.error-text {
+  color: var(--danger);
+  font-weight: 550;
+  font-size: 0.9rem;
+  margin-top: 10px !important;
+}
+.local-note.ok {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}

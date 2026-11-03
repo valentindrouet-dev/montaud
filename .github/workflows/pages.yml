@@ -1,5 +1,9 @@
-# Compile l'app en mode « navigateur » (données dans IndexedDB) et la publie sur GitHub Pages.
+# Compile l'app et la publie sur GitHub Pages.
 # Réglage requis une fois : Settings → Pages → Build and deployment → Source : « GitHub Actions ».
+#
+# Données partagées : définir les variables SUPABASE_URL et SUPABASE_ANON_KEY
+# (Settings → Secrets and variables → Actions → onglet Variables). Sans elles, l'app
+# stocke les données dans le navigateur de chaque appareil.
 name: Déployer sur GitHub Pages
 
 on:
@@ -30,6 +34,8 @@ jobs:
       - run: npm run build
         env:
           VITE_STORAGE: local
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

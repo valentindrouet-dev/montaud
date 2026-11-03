@@ -20,14 +20,26 @@ async function makeThumb(file: File, size = 640): Promise<Blob | null> {
   }
 }
 
-export function useDb() {
+export function useDb(enabled = true) {
   const [db, setDb] = useState<Db | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     api.load().then(setDb, (e) => setError(e.message));
-  }, []);
+    // Changements faits par quelqu'un d'autre (stockage partagé)
+    const off = api.subscribe?.((fresh) => setDb(fresh));
+    // Au retour sur l'onglet / l'app (le direct peut se couper en arrière-plan sur mobile)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && api.kind === 'remote') api.load().then(setDb, () => {});
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      off?.();
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [enabled]);
 
   useEffect(() => {
     if (!toast) return;

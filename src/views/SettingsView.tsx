@@ -5,8 +5,9 @@ import { useApp } from '../context';
 import type { Db } from '../types';
 import { fileSize, todayIso } from '../format';
 import { saveBlob } from '../files';
+import { auth } from '../supabase';
 
-export function SettingsView({ onImported }: { onImported: () => void }) {
+export function SettingsView({ onImported, userEmail }: { onImported: () => void; userEmail?: string }) {
   const { db, actions } = useApp();
   const [busy, setBusy] = useState<string | null>(null);
   const hasData = db.categories.length > 0 || db.purchases.length > 0;
@@ -61,6 +62,19 @@ export function SettingsView({ onImported }: { onImported: () => void }) {
         </div>
       </header>
 
+      {api.kind === 'remote' && (
+        <div className="local-note ok">
+          <div className="row between">
+            <span>
+              <strong>Données partagées en ligne.</strong> Connecté·e en tant que <strong>{userEmail}</strong>.
+            </span>
+            <button className="btn small" onClick={() => auth.signOut()}>
+              Se déconnecter
+            </button>
+          </div>
+          <p>Tout ce que vous ajoutez est visible par tous les membres, en direct. La sauvegarde .zip reste utile en cas de pépin.</p>
+        </div>
+      )}
       {api.kind === 'local' && (
         <div className="local-note">
           <strong>Les données sont enregistrées dans ce navigateur, sur cet appareil.</strong>

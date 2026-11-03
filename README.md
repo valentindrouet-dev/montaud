@@ -5,6 +5,8 @@ avec leurs photos et documents, en frise chronologique, en calendrier et par rub
 
 ## Fonctionnalités
 
+- **Tableau** : une ligne par rubrique, une colonne par année, comme le classeur d'origine. Clic sur une
+  case pour ajouter/modifier, glisser une date vers une autre année ou une autre rubrique.
 - **Fil** : la frise chronologique de la maison, année par année et mois par mois, en cartes avec photos,
   notes et documents. Recherche et filtre par catégorie.
 - **Calendrier** : vue mois et vue année. Glisser-déposer un événement sur un autre jour pour le déplacer
@@ -19,15 +21,31 @@ avec leurs photos et documents, en frise chronologique, en calendrier et par rub
 - **Réglages** : sauvegarde complète en .zip (données + fichiers), restauration, import du fichier Excel.
 - Pensée pour mobile (barre d'onglets, feuilles plein écran) et thème sombre automatique.
 
-## Deux façons de l'utiliser
+## Où sont les données ?
 
-| | GitHub Pages (mode navigateur) | Serveur Node |
+| Mode | Quand | Données |
 |---|---|---|
-| Hébergement | gratuit, https://valentindrouet-dev.github.io/montaud/ | une machine qui fait tourner `npm start` (NAS, VPS, Docker…) |
-| Données | dans le navigateur (IndexedDB), **propres à chaque appareil** | sur le serveur, **partagées** entre tous les appareils |
-| Transfert | sauvegarde .zip ↔ restauration | — |
+| **Partagé (Supabase)** | variables `SUPABASE_URL` / `SUPABASE_ANON_KEY` définies | en ligne, **communes à tous les membres**, mises à jour en direct |
+| Navigateur | site GitHub Pages sans Supabase | dans le navigateur, propres à chaque appareil |
+| Serveur Node | `npm start` / Docker | sur le serveur |
 
-Le mode est choisi à la compilation : `VITE_STORAGE=local npm run build` pour le mode navigateur.
+### Mettre en place le mode partagé (≈ 10 min, gratuit)
+
+1. Créer un compte et un projet sur [supabase.com](https://supabase.com) (offre gratuite).
+2. **SQL Editor** → coller le contenu de [`supabase/setup.sql`](supabase/setup.sql) en remplaçant les deux
+   adresses e-mail par les vôtres → **Run**. (Pour ajouter quelqu'un plus tard :
+   `insert into members (email) values ('...');`)
+3. **Authentication → URL Configuration** : *Site URL* = `https://valentindrouet-dev.github.io/montaud/`
+   (et l'ajouter aussi dans *Redirect URLs*).
+4. **Project Settings → API** (ou *Data API*) : copier la *Project URL* et la clé *anon / publishable*.
+5. Sur GitHub : **Settings → Secrets and variables → Actions → onglet Variables** → créer
+   `SUPABASE_URL` et `SUPABASE_ANON_KEY` avec ces valeurs. (La clé *anon* est faite pour être publique :
+   la sécurité vient des règles du script SQL, qui réservent tout aux adresses de la table `members`.)
+6. **Actions → Déployer sur GitHub Pages → Run workflow**.
+7. Ouvrir le site, se connecter avec son e-mail (lien magique), puis **Réglages → Importer le fichier Excel**.
+
+Facultatif : dans **Authentication → Emails → Magic Link**, ajouter `{{ .Token }}` au modèle pour recevoir
+aussi un code à 6 chiffres (pratique quand le lien s'ouvre dans un autre navigateur que celui de l'app).
 
 ### Publier sur GitHub Pages
 
@@ -92,5 +110,9 @@ une sauvegarde .zip depuis les Réglages.
 - `server/` : Node.js + Express, stockage JSON (écriture atomique) + fichiers sur disque, import Excel
   (ExcelJS), sauvegarde zip (JSZip).
 - `src/` : React + TypeScript (Vite), icônes Lucide, glisser-déposer dnd-kit, polices Inter & Fraunces.
+- `src/remote.ts` + `src/supabase.ts` : mode partagé (une ligne par élément, envoi des seules
+  modifications, temps réel) ; `src/local.ts` : mode navigateur (IndexedDB).
+- `supabase/setup.sql` : tables, règles d'accès, stockage des fichiers.
 - `shared/` : règles métier et import Excel, communs au serveur et au mode navigateur.
-- `npm test` : tests de l'import Excel, des pièces jointes et de la sauvegarde.
+- `npm test` : tests de l'import Excel, des pièces jointes, de la sauvegarde et du mode partagé
+  (deux appareils simulés).
