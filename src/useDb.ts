@@ -1,16 +1,39 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from './api';
-import type { Collection, Db } from './types';
+import type { Attachment, Collection, Db } from './types';
 
 type Item = { id: string; order?: number };
+
+/** Vignette JPEG (côté navigateur) pour afficher vite les photos. */
+async function makeThumb(file: File, size = 640): Promise<Blob | null> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, size / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+    return await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+  } catch {
+    return null; // format non lisible par le navigateur (ex. HEIC) : on garde l'original
+  }
+}
 
 export function useDb() {
   const [db, setDb] = useState<Db | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     api.load().then(setDb, (e) => setError(e.message));
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const run = useCallback(async <T,>(p: Promise<T>): Promise<T | undefined> => {
     try {
@@ -21,6 +44,11 @@ export function useDb() {
       return undefined;
     }
   }, []);
+
+  const reload = useCallback(async () => {
+    const fresh = await run(api.load());
+    if (fresh) setDb(fresh);
+  }, [run]);
 
   const create = useCallback(
     async <T extends Item>(c: Collection, data: Partial<T>) => {
@@ -43,9 +71,23 @@ export function useDb() {
   const remove = useCallback(
     async (c: Collection, id: string) => {
       await run(api.remove(c, id));
-      // Le serveur supprime en cascade : on recharge pour rester synchronisé.
-      const fresh = await run(api.load());
-      if (fresh) setDb(fresh);
+      await reload(); // le serveur supprime en cascade
+    },
+    [run, reload],
+  );
+
+  const upload = useCallback(
+    async (ownerType: Attachment['ownerType'], ownerId: string, files: File[]) => {
+      for (const file of files) {
+        let item = await run(api.upload(ownerType, ownerId, file));
+        if (!item) continue;
+        if (file.type.startsWith('image/')) {
+          const thumb = await makeThumb(file);
+          if (thumb) item = (await run(api.uploadThumb(item.id, thumb))) ?? item;
+        }
+        const added = item;
+        setDb((d) => d && { ...d, attachments: [...d.attachments.filter((a) => a.id !== added.id), added] });
+      }
     },
     [run],
   );
@@ -63,9 +105,7 @@ export function useDb() {
     [update],
   );
 
-  return { db, setDb, error, setError, create, update, remove, move, run };
+  return { db, setDb, error, setError, toast, setToast, create, update, remove, upload, move, run, reload };
 }
 
 export type DbActions = ReturnType<typeof useDb>;
-
-export const byOrder = <T extends { order?: number }>(a: T, b: T) => (a.order ?? 0) - (b.order ?? 0);

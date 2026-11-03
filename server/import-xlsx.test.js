@@ -27,7 +27,7 @@ async function sampleWorkbook() {
 test('importe chronologie et dépenses', async () => {
   const db = await importXlsx(await sampleWorkbook());
 
-  assert.deepEqual(db.categories.map((c) => c.name), ['GÉNÉRAL', 'PISCINE']);
+  assert.deepEqual(db.categories.map((c) => c.name), ['Maison', 'Piscine']);
   assert.deepEqual(db.events.map((e) => e.name), ['Achat maison', 'Première baignade', 'Hivernage']);
 
   const ev = Object.fromEntries(db.events.map((e) => [e.name, e]));

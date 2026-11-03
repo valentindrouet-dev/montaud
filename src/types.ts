@@ -2,10 +2,11 @@ export interface Category {
   id: string;
   name: string;
   color?: string;
+  icon?: string;
   order?: number;
-  collapsed?: boolean;
 }
 
+/** Une « rubrique » : quelque chose qui revient (Ramonage, Taille glycine, Première baignade…) */
 export interface HouseEvent {
   id: string;
   categoryId: string;
@@ -14,7 +15,7 @@ export interface HouseEvent {
   note?: string;
 }
 
-/** Une « case » du tableau : un événement à une année donnée. */
+/** Un événement daté rattaché à une rubrique. */
 export interface Occurrence {
   id: string;
   eventId: string;
@@ -23,7 +24,7 @@ export interface Occurrence {
   date?: string;
   /** Fin de période (AAAA-MM-JJ) */
   endDate?: string;
-  /** Texte libre quand il n'y a pas de date précise (« mi-octobre », « juillet - août »…) */
+  /** Date approximative en texte libre (« mi-octobre », « juillet - août »…) */
   label?: string;
   note?: string;
 }
@@ -36,11 +37,23 @@ export interface Purchase {
   note?: string;
 }
 
+export interface Attachment {
+  id: string;
+  ownerType: 'occurrences' | 'purchases';
+  ownerId: string;
+  name: string;
+  mime: string;
+  size: number;
+  createdAt: string;
+  hasThumb?: boolean;
+}
+
 export interface Db {
   categories: Category[];
   events: HouseEvent[];
   occurrences: Occurrence[];
   purchases: Purchase[];
+  attachments: Attachment[];
 }
 
 export type Collection = keyof Db;

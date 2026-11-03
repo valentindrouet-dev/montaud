@@ -1,7 +1,27 @@
 import ExcelJS from 'exceljs';
 import { randomUUID } from 'node:crypto';
 
-const PALETTE = ['#e9eb8f', '#d8f7d6', '#e6bdb1', '#fdfcc5', '#e6bdca', '#e6dae5', '#cfe2f3', '#f2dcdb', '#d9ead3', '#fce5cd'];
+const PALETTE = ['#e07a5f', '#3d9970', '#5b8def', '#f2a541', '#9b6bd3', '#e05f8a', '#2bb3b1', '#8a8f3c', '#c9733a', '#6c7a89'];
+
+/** Icône (emoji) selon le nom de la catégorie. */
+const ICONS = [
+  [/jardin|potager|plante/, '🌿'], [/piscine/, '🏊'], [/po[eê]le/, '🔥'], [/chemin[eé]e/, '🪵'],
+  [/travaux|chantier/, '🛠️'], [/voiture|auto/, '🚗'], [/fissure|sinistre/, '🧱'], [/entretien/, '🧰'],
+  [/[eé]v[eé]nement|f[eê]te/, '🎉'], [/loisir|sport|v[eé]lo/, '🚲'], [/vacance|voyage/, '🧳'],
+  [/d[eé]pense|achat/, '💶'], [/g[eé]n[eé]ral|maison/, '🏡'],
+];
+
+export function guessIcon(name) {
+  const n = name.toLocaleLowerCase('fr-FR');
+  return ICONS.find(([re]) => re.test(n))?.[1] ?? '⭐';
+}
+
+/** « PISCINE » -> « Piscine » */
+function prettyName(name) {
+  if (name !== name.toLocaleUpperCase('fr-FR')) return name;
+  const lower = name.toLocaleLowerCase('fr-FR');
+  return lower.charAt(0).toLocaleUpperCase('fr-FR') + lower.slice(1);
+}
 
 /** Valeur « brute » d'une cellule exceljs (gère formules et texte riche). */
 function cellValue(cell) {
@@ -15,11 +35,6 @@ function cellValue(cell) {
   }
   if (typeof v === 'string') v = v.trim();
   return v === '' ? null : v;
-}
-
-function cellColor(cell) {
-  const argb = cell.fill?.type === 'pattern' ? cell.fill.fgColor?.argb : undefined;
-  return typeof argb === 'string' && /^[0-9a-f]{8}$/i.test(argb) ? `#${argb.slice(2).toLowerCase()}` : undefined;
 }
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -63,11 +78,14 @@ function readTimeline(ws, db) {
   const firstYearCol = Math.min(...yearCols.keys());
 
   let category;
-  const ensureCategory = (name, color) => {
+  const ensureCategory = (raw) => {
+    const name = prettyName(raw);
+    const icon = guessIcon(name);
     category = {
       id: randomUUID(),
       name,
-      color: color || PALETTE[db.categories.length % PALETTE.length],
+      icon: icon === '⭐' && /^[A-ZÀ-Ý]+$/u.test(raw) ? '👶' : icon, // un prénom seul = un enfant
+      color: PALETTE[db.categories.length % PALETTE.length],
       order: db.categories.length,
     };
     db.categories.push(category);
@@ -90,10 +108,10 @@ function readTimeline(ws, db) {
     }
 
     if (values.length === 0 && name === name.toLocaleUpperCase('fr-FR') && /\p{L}/u.test(name)) {
-      ensureCategory(name, cellColor(labelCell));
+      ensureCategory(name);
       return;
     }
-    if (!category) ensureCategory('GÉNÉRAL');
+    if (!category) ensureCategory('Maison');
 
     const event = {
       id: randomUUID(),
@@ -150,7 +168,7 @@ function readPurchases(ws, db) {
 export async function importXlsx(buffer) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
-  const db = { categories: [], events: [], occurrences: [], purchases: [] };
+  const db = { categories: [], events: [], occurrences: [], purchases: [], attachments: [] };
   for (const ws of wb.worksheets) {
     if (!readPurchases(ws, db)) readTimeline(ws, db);
   }

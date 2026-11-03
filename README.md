@@ -1,17 +1,23 @@
 # 🏡 Montaud
 
-Le journal de la maison : tous les événements (entretien, jardin, piscine, travaux, enfants, vacances…)
-rangés comme dans le fichier Excel d'origine — **une ligne par événement, une colonne par année**.
+Le carnet de la maison : tous les événements (entretien, jardin, piscine, travaux, enfants, vacances…),
+avec leurs photos et documents, en frise chronologique, en calendrier et par rubrique.
 
 ## Fonctionnalités
 
-- **Tableau** : la grille catégories × années, comme l'Excel. Cliquer sur une case pour ajouter ou modifier
-  une date (date précise, période ou texte libre du type « mi-octobre »), avec une note facultative.
-  La colonne « Dernière fois » indique depuis quand l'événement a eu lieu (pratique pour le ramonage,
-  l'adoucisseur, les tailles…). Catégories repliables, colorées, réordonnables ; recherche.
-- **Journal** : toutes les dates de la plus récente à la plus ancienne, filtrables par catégorie.
-- **Dépenses** : date / biens / montant / note, avec le total.
-- **Données** : import du fichier Excel, export et restauration d'une sauvegarde JSON.
+- **Fil** : la frise chronologique de la maison, année par année et mois par mois, en cartes avec photos,
+  notes et documents. Recherche et filtre par catégorie.
+- **Calendrier** : vue mois et vue année. Glisser-déposer un événement sur un autre jour pour le déplacer
+  (les périodes gardent leur durée) ; les dates approximatives (« mi-octobre ») peuvent être glissées sur
+  un jour pour les préciser. Clic sur un jour pour y ajouter un événement.
+- **Rubriques** : tout ce qui revient (ramonage, adoucisseur, tailles, baignades…) avec « il y a combien de
+  temps », l'historique, et un bouton « Aujourd'hui » pour noter en un clic que c'est fait.
+- **Photos** : la galerie de toutes les photos, avec visionneuse plein écran (flèches, glisser du doigt).
+- **Dépenses** : montants par année, avec factures jointes.
+- **Pièces jointes** partout : photos, factures, devis, notices (glisser-déposer). Les vignettes des photos
+  sont générées dans le navigateur.
+- **Réglages** : sauvegarde complète en .zip (données + fichiers), restauration, import du fichier Excel.
+- Pensée pour mobile (barre d'onglets, feuilles plein écran) et thème sombre automatique.
 
 ## Démarrer
 
@@ -54,17 +60,21 @@ Règles d'import :
 
 ## Données et confidentialité
 
-Les données sont stockées dans `data/montaud.json` (modifiable via `DATA_FILE`), **ignoré par git** :
-le dépôt ne contient que le code, jamais les données de la famille.
+Les données sont stockées dans `data/montaud.json` et les fichiers joints dans `data/uploads/`
+(modifiables via `DATA_FILE` / `UPLOAD_DIR`). Le dossier `data/` est **ignoré par git** : le dépôt ne
+contient que le code, jamais les données ni les photos de la famille. Pense à télécharger régulièrement
+une sauvegarde .zip depuis les Réglages.
 
 | Variable       | Rôle                                                        |
 | -------------- | ----------------------------------------------------------- |
 | `PORT`         | Port du serveur (3001 par défaut)                           |
 | `DATA_FILE`    | Chemin du fichier de données                                |
+| `UPLOAD_DIR`   | Dossier des pièces jointes (par défaut `data/uploads`)      |
 | `APP_PASSWORD` | Si défini, l'app demande ce mot de passe (HTTP Basic, nom d'utilisateur libre) |
 
 ## Technique
 
-- `server/` : Node.js + Express, stockage JSON (écriture atomique), import Excel avec ExcelJS.
-- `src/` : React + TypeScript (Vite).
-- `npm test` : tests de l'import Excel.
+- `server/` : Node.js + Express, stockage JSON (écriture atomique) + fichiers sur disque, import Excel
+  (ExcelJS), sauvegarde zip (JSZip).
+- `src/` : React + TypeScript (Vite), icônes Lucide, glisser-déposer dnd-kit, polices Inter & Fraunces.
+- `npm test` : tests de l'import Excel, des pièces jointes et de la sauvegarde.
